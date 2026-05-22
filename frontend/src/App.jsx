@@ -8,6 +8,8 @@ export default function App() {
   const [alerts, setAlerts] = useState([])
   const [scanning, setScanning] = useState(false)
   const [lastScan, setLastScan] = useState(null)
+  const [autoScan, setAutoScan] = useState(false)
+  const [scanInterval, setScanInterval] = useState(30)
 
   const fetchDevices = async () => {
     try {
@@ -39,6 +41,17 @@ export default function App() {
     fetchAlerts()
   }, [])
 
+// ADD THIS RIGHT HERE
+useEffect(() => {
+  if (!autoScan) return
+  
+  const interval = setInterval(() => {
+    triggerScan()
+  }, scanInterval * 1000)
+
+  return () => clearInterval(interval)
+}, [autoScan, scanInterval])
+
   return (
     <div style={{ minHeight: "100vh", background: "#f5f0eb", color: "#1a1a2e", fontFamily: "monospace", padding: "2rem" }}>
 
@@ -63,6 +76,26 @@ export default function App() {
           {lastScan && <div style={{ fontSize: "10px", color: "#9e8f8f", marginTop: "6px", letterSpacing: "1px" }}>LAST SCAN {lastScan}</div>}
         </div>
       </div>
+
+<div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>
+  <span style={{ fontSize: "10px", color: "#9e8f8f", letterSpacing: "1px" }}>AUTO SCAN</span>
+  <div
+    onClick={() => setAutoScan(!autoScan)}
+    style={{ width: "36px", height: "18px", background: autoScan ? "#6d4aad" : "#e0d8d0", borderRadius: "9px", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
+  >
+    <div style={{ position: "absolute", top: "2px", left: autoScan ? "18px" : "2px", width: "14px", height: "14px", background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
+  </div>
+  <select
+    value={scanInterval}
+    onChange={e => setScanInterval(Number(e.target.value))}
+    style={{ background: "transparent", border: "0.5px solid #e0d8d0", color: "#9e8f8f", fontSize: "10px", padding: "3px 6px", fontFamily: "monospace", letterSpacing: "1px" }}
+  >
+    <option value={10}>10s</option>
+    <option value={30}>30s</option>
+    <option value={60}>1m</option>
+    <option value={300}>5m</option>
+  </select>
+</div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "2.5rem" }}>
