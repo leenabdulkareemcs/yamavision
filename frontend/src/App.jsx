@@ -44,6 +44,15 @@ export default function App() {
     } catch (err) { console.error(err) }
   }
 
+  const scanPorts = async (deviceId) => {
+    try {
+      const res = await axios.get(`${API}/devices/${deviceId}/ports`)
+      setDevices(prev => prev.map(d =>
+        d.id === deviceId ? { ...d, open_ports: res.data.open_ports } : d
+      ))
+    } catch (err) { console.error(err) }
+  }
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
@@ -58,15 +67,15 @@ export default function App() {
   }, [autoScan, scanInterval])
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f5f0eb", color: "#2d2438", fontFamily: "monospace", padding: "2rem" }}>
+    <div style={{ minHeight: "100vh", background: "#090b10", color: "#c9c3d4", fontFamily: "monospace", padding: "2rem" }}>
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.5rem", borderBottom: "0.5px solid #e0d8d0", paddingBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2.5rem", borderBottom: "0.5px solid #1e1b2e", paddingBottom: "1.5rem" }}>
         <div>
-          <div style={{ fontSize: "24px", fontWeight: "300", letterSpacing: "8px", color: "#2d2438" }}>
-            YAMA<span style={{ color: "#6d4aad", fontWeight: "600" }}>VISION</span>
+          <div style={{ fontSize: "24px", fontWeight: "300", letterSpacing: "8px", color: "#e8e4f0", fontFamily: "Rajdhani, monospace" }}>
+            YAMA<span style={{ color: "#9d6fff", fontWeight: "600" }}>VISION</span>
           </div>
-          <div style={{ fontSize: "11px", color: "#9e8f8f", letterSpacing: "3px", marginTop: "4px" }}>
+          <div style={{ fontSize: "11px", color: "#3d3556", letterSpacing: "3px", marginTop: "4px" }}>
             NETWORK MONITOR
           </div>
         </div>
@@ -74,23 +83,23 @@ export default function App() {
           <button
             onClick={triggerScan}
             disabled={scanning}
-            style={{ background: scanning ? "#6d4aad" : "transparent", border: "0.5px solid #6d4aad", color: scanning ? "#faf7f4" : "#6d4aad", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s" }}
+            style={{ background: scanning ? "#9d6fff" : "transparent", border: "0.5px solid #9d6fff", color: scanning ? "#090b10" : "#9d6fff", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s" }}
           >
             {scanning ? "SCANNING..." : "SCAN NETWORK"}
           </button>
-          {lastScan && <div style={{ fontSize: "10px", color: "#9e8f8f", marginTop: "6px", letterSpacing: "1px" }}>LAST SCAN {lastScan}</div>}
+          {lastScan && <div style={{ fontSize: "10px", color: "#3d3556", marginTop: "6px", letterSpacing: "1px" }}>LAST SCAN {lastScan}</div>}
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>
-            <span style={{ fontSize: "10px", color: "#9e8f8f", letterSpacing: "1px" }}>AUTO SCAN</span>
+            <span style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "1px" }}>AUTO SCAN</span>
             <div
               onClick={() => setAutoScan(!autoScan)}
-              style={{ width: "36px", height: "18px", background: autoScan ? "#6d4aad" : "#e0d8d0", borderRadius: "9px", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
+              style={{ width: "36px", height: "18px", background: autoScan ? "#9d6fff" : "#1e1b2e", borderRadius: "9px", cursor: "pointer", position: "relative", transition: "background 0.2s" }}
             >
-              <div style={{ position: "absolute", top: "2px", left: autoScan ? "18px" : "2px", width: "14px", height: "14px", background: "#fff", borderRadius: "50%", transition: "left 0.2s" }} />
+              <div style={{ position: "absolute", top: "2px", left: autoScan ? "18px" : "2px", width: "14px", height: "14px", background: "#e8e4f0", borderRadius: "50%", transition: "left 0.2s" }} />
             </div>
             <select
               value={scanInterval}
               onChange={e => setScanInterval(Number(e.target.value))}
-              style={{ background: "transparent", border: "0.5px solid #e0d8d0", color: "#9e8f8f", fontSize: "10px", padding: "3px 6px", fontFamily: "monospace", letterSpacing: "1px" }}
+              style={{ background: "#090b10", border: "0.5px solid #1e1b2e", color: "#3d3556", fontSize: "10px", padding: "3px 6px", fontFamily: "monospace", letterSpacing: "1px" }}
             >
               <option value={10}>10s</option>
               <option value={30}>30s</option>
@@ -104,12 +113,12 @@ export default function App() {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px", marginBottom: "2.5rem" }}>
         {[
-          { label: "TOTAL DEVICES", value: devices.length, color: "#6d4aad" },
-          { label: "ONLINE", value: devices.filter(d => d.is_online).length, color: "#059669" },
-          { label: "ALERTS", value: alerts.length, color: "#dc2626" },
+          { label: "TOTAL DEVICES", value: devices.length, color: "#9d6fff" },
+          { label: "ONLINE", value: devices.filter(d => d.is_online).length, color: "#4ade80" },
+          { label: "ALERTS", value: alerts.length, color: "#f87171" },
         ].map((stat, i) => (
-          <div key={i} style={{ background: "#faf7f4", border: "0.5px solid #e0d8d0", padding: "1.25rem", borderRadius: "4px" }}>
-            <div style={{ fontSize: "10px", color: "#9e8f8f", letterSpacing: "2px" }}>{stat.label}</div>
+          <div key={i} style={{ background: "#0e1018", border: "0.5px solid #1e1b2e", padding: "1.25rem", borderRadius: "4px" }}>
+            <div style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "2px" }}>{stat.label}</div>
             <div style={{ fontSize: "36px", fontWeight: "500", color: stat.color, marginTop: "6px" }}>{stat.value}</div>
           </div>
         ))}
@@ -117,36 +126,56 @@ export default function App() {
 
       {/* Devices */}
       <div style={{ marginBottom: "2.5rem" }}>
-        <div style={{ fontSize: "10px", color: "#9e8f8f", letterSpacing: "3px", marginBottom: "1rem" }}>— DEVICES</div>
+        <div style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "3px", marginBottom: "1rem" }}>— DEVICES</div>
         {devices.map(device => (
-          <div key={device.id} style={{ background: "#faf7f4", border: "0.5px solid #e0d8d0", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <div style={{ fontSize: "14px", color: "#2d2438", letterSpacing: "1px" }}>{device.ip_address}</div>
-              <div style={{ fontSize: "11px", color: "#9e8f8f", marginTop: "3px" }}>{device.mac_address}</div>
-              <div style={{ fontSize: "11px", color: "#6b7280", marginTop: "2px" }}>{device.hostname || "unknown"}</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "10px", letterSpacing: "1px", padding: "3px 10px", border: `0.5px solid ${device.is_online ? "#059669" : "#e0d8d0"}`, color: device.is_online ? "#059669" : "#9e8f8f" }}>
-                {device.is_online ? "ONLINE" : "OFFLINE"}
+          <div key={device.id} style={{ background: "#0e1018", border: "0.5px solid #1e1b2e", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "14px", color: "#e8e4f0", letterSpacing: "1px" }}>{device.ip_address}</div>
+                <div style={{ fontSize: "11px", color: "#3d3556", marginTop: "3px" }}>{device.mac_address}</div>
+                <div style={{ fontSize: "11px", color: "#5a5272", marginTop: "2px" }}>{device.hostname || "unknown"}</div>
               </div>
-              <div
-                onClick={(e) => { e.stopPropagation(); toggleTrust(device.id, device.is_trusted) }}
-                style={{ fontSize: "10px", marginTop: "6px", letterSpacing: "1px", cursor: "pointer", padding: "3px 10px", border: `0.5px solid ${device.is_trusted ? "#059669" : "#e0d8d0"}`, color: device.is_trusted ? "#059669" : "#9e8f8f" }}
-              >
-                {device.is_trusted ? "TRUSTED" : "MARK TRUSTED"}
+              <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "6px" }}>
+                <div style={{ fontSize: "10px", letterSpacing: "1px", padding: "3px 10px", border: `0.5px solid ${device.is_online ? "#4ade80" : "#1e1b2e"}`, color: device.is_online ? "#4ade80" : "#3d3556" }}>
+                  {device.is_online ? "ONLINE" : "OFFLINE"}
+                </div>
+                <div
+                  onClick={(e) => { e.stopPropagation(); toggleTrust(device.id, device.is_trusted) }}
+                  style={{ fontSize: "10px", letterSpacing: "1px", cursor: "pointer", padding: "3px 10px", border: `0.5px solid ${device.is_trusted ? "#4ade80" : "#1e1b2e"}`, color: device.is_trusted ? "#4ade80" : "#3d3556" }}
+                >
+                  {device.is_trusted ? "TRUSTED" : "MARK TRUSTED"}
+                </div>
+                <div
+                  onClick={() => scanPorts(device.id)}
+                  style={{ fontSize: "10px", letterSpacing: "1px", cursor: "pointer", padding: "3px 10px", border: "0.5px solid #9d6fff", color: "#9d6fff" }}
+                >
+                  SCAN PORTS
+                </div>
               </div>
             </div>
+            {device.open_ports && device.open_ports.length > 0 && (
+              <div style={{ marginTop: "12px", borderTop: "0.5px solid #1e1b2e", paddingTop: "10px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {device.open_ports.map(p => (
+                  <div key={p.port} style={{ fontSize: "10px", padding: "3px 8px", border: "0.5px solid #9d6fff", color: "#9d6fff", letterSpacing: "1px" }}>
+                    {p.port} {p.service}
+                  </div>
+                ))}
+              </div>
+            )}
+            {device.open_ports && device.open_ports.length === 0 && (
+              <div style={{ marginTop: "8px", fontSize: "10px", color: "#3d3556", letterSpacing: "1px" }}>NO OPEN PORTS FOUND</div>
+            )}
           </div>
         ))}
       </div>
 
       {/* Alerts */}
       <div>
-        <div style={{ fontSize: "10px", color: "#9e8f8f", letterSpacing: "3px", marginBottom: "1rem" }}>— ALERTS</div>
+        <div style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "3px", marginBottom: "1rem" }}>— ALERTS</div>
         {alerts.map(alert => (
-          <div key={alert.id} style={{ background: "#faf7f4", border: "0.5px solid #fecaca", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px" }}>
-            <div style={{ fontSize: "10px", color: "#dc2626", letterSpacing: "2px" }}>{alert.alert_type}</div>
-            <div style={{ fontSize: "12px", color: "#6b7280", marginTop: "6px" }}>{alert.message}</div>
+          <div key={alert.id} style={{ background: "#0e1018", border: "0.5px solid #2d1515", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px" }}>
+            <div style={{ fontSize: "10px", color: "#f87171", letterSpacing: "2px" }}>{alert.alert_type}</div>
+            <div style={{ fontSize: "12px", color: "#5a5272", marginTop: "6px" }}>{alert.message}</div>
           </div>
         ))}
       </div>

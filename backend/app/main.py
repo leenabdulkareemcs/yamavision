@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from app.database import engine, Base, get_db
 from app.models import Device, Alert
-from app.scanner import scan_network, save_devices_to_db
+from app.scanner import scan_network, save_devices_to_db, scan_ports
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -70,3 +70,15 @@ def untrust_device(device_id: int, db: Session = Depends(get_db)):
     device.is_trusted = False
     db.commit()
     return {"message": f"{device.ip_address} marked as untrusted"}
+
+@app.get("/devices/{device_id}/ports")
+def scan_device_ports(device_id: int, db: Session = Depends(get_db)):
+    """Scan open ports on a specific device"""
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        return {"error": "Device not found"}
+    ports = scan_ports(device.ip_address)
+    return {
+        "device_ip": device.ip_address,
+        "open_ports": ports
+    }

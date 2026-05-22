@@ -97,3 +97,31 @@ def save_devices_to_db(devices, db):
     db.commit()
     print(f"✅ Saved {len(new_devices)} new devices to database")
     return new_devices
+
+def scan_ports(ip, ports=[21,22,23,25,53,80,110,143,443,445,3306,3389,5900,8080,8443]):
+    """Scan common ports on a device"""
+    open_ports = []
+    for port in ports:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.5)
+            result = s.connect_ex((ip, port))
+            if result == 0:
+                open_ports.append({
+                    "port": port,
+                    "service": get_service_name(port)
+                })
+            s.close()
+        except:
+            pass
+    return open_ports
+
+def get_service_name(port):
+    """Get common service name for a port"""
+    services = {
+        21: "FTP", 22: "SSH", 23: "Telnet", 25: "SMTP",
+        53: "DNS", 80: "HTTP", 110: "POP3", 143: "IMAP",
+        443: "HTTPS", 445: "SMB", 3306: "MySQL",
+        3389: "RDP", 5900: "VNC", 8080: "HTTP-Alt", 8443: "HTTPS-Alt"
+    }
+    return services.get(port, "Unknown")
