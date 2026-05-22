@@ -52,3 +52,21 @@ def get_alerts(db: Session = Depends(get_db)):
     """Get all alerts from database"""
     alerts = db.query(Alert).all()
     return alerts
+
+@app.put("/devices/{device_id}/trust")
+def trust_device(device_id: int, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        return {"error": "Device not found"}
+    device.is_trusted = True
+    db.commit()
+    return {"message": f"{device.ip_address} marked as trusted"}
+
+@app.put("/devices/{device_id}/untrust")
+def untrust_device(device_id: int, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        return {"error": "Device not found"}
+    device.is_trusted = False
+    db.commit()
+    return {"message": f"{device.ip_address} marked as untrusted"}
