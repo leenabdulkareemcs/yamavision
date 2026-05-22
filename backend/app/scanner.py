@@ -1,0 +1,99 @@
+import scapy.all as scapy
+import psutil
+import socket
+from datetime import datetime
+
+def get_local_ip():
+    """Get the local IP address of this machine"""
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except:
+        return "127.0.0.1"
+
+def get_network_range():
+    """Get the network range to scan e.g 192.168.1.0/24"""
+    local_ip = get_local_ip()
+    parts = local_ip.split(".")
+    network = f"{parts[0]}.{parts[1]}.{parts[2]}.0/24"
+    return network
+
+def scan_network():
+    """Scan the network and return list of devices"""
+    network_range = get_network_range()
+    print(f"🔍 Scanning network: {network_range}")
+    
+    # ARP scan — sends ARP requests to every IP in the range
+    arp_request = scapy.ARP(pdst=network_range)
+    broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
+    arp_request_broadcast = broadcast / arp_request
+    
+    answered_list = scapy.srp(
+        arp_request_broadcast, 
+        timeout=2, 
+        verbose=False
+    )[0]
+    
+    devices = []
+    for element in answered_list:
+        device = {
+            "ip_address": element[1].psrc,
+            "mac_address": element[1].hwsrc,
+            "hostname": get_hostname(element[1].psrc),
+            "last_seen": datetime.now()
+        }
+        devices.append(device)
+    
+    print(f"✅ Found {len(devices)} devices")
+    return devices
+
+def get_hostname(ip):
+    """Try to get hostname from IP"""
+    try:
+        hostname = socket.gethostbyaddr(ip)[0]
+        return hostname
+    except:
+        return None
+    
+def save_devices_to_db(devices, db):
+    """Save scanned devices to the database"""
+    from app.models import Device, Alert
+    
+    new_devices = []
+    
+    for device_data in devices:
+        # Check if device already exists
+        existing = db.query(Device).filter(
+            Device.ip_address == device_data["ip_address"]
+        ).first()
+        
+        if existing:
+            # Update last seen
+            existing.last_seen = device_data["last_seen"]
+            existing.is_online = True
+        else:
+            # New device found — create alert
+            new_device = Device(
+                ip_address=device_data["ip_address"],
+                mac_address=device_data["mac_address"],
+                hostname=device_data["hostname"],
+                is_online=True,
+                is_trusted=False
+            )
+            db.add(new_device)
+            new_devices.append(device_data["ip_address"])
+            
+            # Create alert for new device
+            alert = Alert(
+                device_ip=device_data["ip_address"],
+                alert_type="NEW_DEVICE",
+                message=f"New device detected: {device_data['ip_address']} ({device_data['mac_address']})"
+            )
+            db.add(alert)
+    
+    db.commit()
+    print(f"✅ Saved {len(new_devices)} new devices to database")
+    return new_devices
