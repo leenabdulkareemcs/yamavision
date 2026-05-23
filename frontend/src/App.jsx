@@ -53,44 +53,54 @@ export default function App() {
     } catch (err) { console.error(err) }
   }
 
+  const detectOS = async (deviceId) => {
+    try {
+      const res = await axios.get(`${API}/devices/${deviceId}/os`)
+      setDevices(prev => prev.map(d =>
+        d.id === deviceId ? { ...d, os: res.data.os } : d
+      ))
+    } catch (err) { console.error(err) }
+  }
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
   }, [])
-useEffect(() => {
-  let ws
-  let reconnectTimer
 
-  const connect = () => {
-    ws = new WebSocket("ws://localhost:8000/ws")
+  useEffect(() => {
+    if (!autoScan) return
+    const interval = setInterval(() => {
+      triggerScan()
+    }, scanInterval * 1000)
+    return () => clearInterval(interval)
+  }, [autoScan, scanInterval])
 
-    ws.onopen = () => {
-      console.log("WebSocket connected")
+  useEffect(() => {
+    let ws
+    let reconnectTimer
+
+    const connect = () => {
+      ws = new WebSocket("ws://localhost:8000/ws")
+      ws.onopen = () => console.log("WebSocket connected")
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        setDevices(data.devices.sort((a, b) => a.id - b.id))
+        setAlerts(data.alerts)
+      }
+      ws.onerror = (err) => console.error("WebSocket error:", err)
+      ws.onclose = () => {
+        console.log("WebSocket disconnected — reconnecting in 3s")
+        reconnectTimer = setTimeout(connect, 3000)
+      }
     }
 
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      setDevices(data.devices.sort((a, b) => a.id - b.id))
-      setAlerts(data.alerts)
+    connect()
+
+    return () => {
+      clearTimeout(reconnectTimer)
+      if (ws) ws.close()
     }
-
-    ws.onerror = (err) => {
-      console.error("WebSocket error:", err)
-    }
-
-    ws.onclose = () => {
-      console.log("WebSocket disconnected — reconnecting in 3s")
-      reconnectTimer = setTimeout(connect, 3000)
-    }
-  }
-
-  connect()
-
-  return () => {
-    clearTimeout(reconnectTimer)
-    if (ws) ws.close()
-  }
-}, [])
+  }, [])
 
   return (
     <div style={{ minHeight: "100vh", background: "#090b10", color: "#c9c3d4", fontFamily: "monospace", padding: "2rem" }}>
@@ -177,6 +187,12 @@ useEffect(() => {
                 >
                   SCAN PORTS
                 </div>
+                <div
+                  onClick={() => detectOS(device.id)}
+                  style={{ fontSize: "10px", letterSpacing: "1px", cursor: "pointer", padding: "3px 10px", border: "0.5px solid #38bdf8", color: "#38bdf8" }}
+                >
+                  DETECT OS
+                </div>
               </div>
             </div>
             {device.open_ports && device.open_ports.length > 0 && (
@@ -190,6 +206,11 @@ useEffect(() => {
             )}
             {device.open_ports && device.open_ports.length === 0 && (
               <div style={{ marginTop: "8px", fontSize: "10px", color: "#3d3556", letterSpacing: "1px" }}>NO OPEN PORTS FOUND</div>
+            )}
+            {device.os && (
+              <div style={{ marginTop: "8px", fontSize: "10px", color: "#38bdf8", letterSpacing: "1px" }}>
+                OS: {device.os}
+              </div>
             )}
           </div>
         ))}

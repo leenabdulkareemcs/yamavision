@@ -125,3 +125,17 @@ def get_service_name(port):
         3389: "RDP", 5900: "VNC", 8080: "HTTP-Alt", 8443: "HTTPS-Alt"
     }
     return services.get(port, "Unknown")
+
+def detect_os(ip):
+    """Try to detect OS of a device using nmap"""
+    try:
+        import nmap
+        nm = nmap.PortScanner()
+        nm.scan(ip, arguments="-O --osscan-guess")
+        if ip in nm.all_hosts():
+            os_matches = nm[ip].get('osmatch', [])
+            if os_matches:
+                return os_matches[0]['name']
+        return "Unknown"
+    except:
+        return "Unknown"

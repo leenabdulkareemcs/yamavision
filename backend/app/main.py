@@ -113,3 +113,16 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+        
+@app.get("/devices/{device_id}/os")
+async def detect_device_os(device_id: int, db: Session = Depends(get_db)):
+    """Detect OS of a specific device"""
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        return {"error": "Device not found"}
+    from app.scanner import detect_os
+    os_name = detect_os(device.ip_address)
+    return {
+        "device_ip": device.ip_address,
+        "os": os_name
+    }
