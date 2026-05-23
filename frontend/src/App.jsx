@@ -69,6 +69,13 @@ export default function App() {
   } catch (err) { console.error(err) }
 }
 
+const resolveAlert = async (alertId) => {
+  try {
+    await axios.put(`${API}/alerts/${alertId}/resolve`)
+    await fetchAlerts()
+  } catch (err) { console.error(err) }
+}
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
@@ -231,17 +238,27 @@ export default function App() {
         ))}
       </div>
 
-      {/* Alerts */}
-      <div>
-        <div style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "3px", marginBottom: "1rem" }}>— ALERTS</div>
-        {alerts.map(alert => (
-          <div key={alert.id} style={{ background: "#0e1018", border: "0.5px solid #2d1515", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px" }}>
-            <div style={{ fontSize: "10px", color: "#f87171", letterSpacing: "2px" }}>{alert.alert_type}</div>
-            <div style={{ fontSize: "12px", color: "#5a5272", marginTop: "6px" }}>{alert.message}</div>
-          </div>
-        ))}
-      </div>
-
+        {/* Alerts */}
+        <div>
+          <div style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "3px", marginBottom: "1rem" }}>— ALERTS</div>
+          {alerts.filter(a => !a.is_resolved).length === 0 && (
+            <div style={{ fontSize: "11px", color: "#3d3556", letterSpacing: "1px" }}>NO ACTIVE ALERTS</div>
+          )}
+          {alerts.filter(a => !a.is_resolved).map(alert => (
+            <div key={alert.id} style={{ background: "#0e1018", border: "0.5px solid #2d1515", borderRadius: "4px", padding: "1rem 1.25rem", marginBottom: "8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "10px", color: "#f87171", letterSpacing: "2px" }}>{alert.alert_type}</div>
+                <div style={{ fontSize: "12px", color: "#5a5272", marginTop: "6px" }}>{alert.message}</div>
+              </div>
+              <div
+                onClick={() => resolveAlert(alert.id)}
+                style={{ fontSize: "10px", letterSpacing: "1px", cursor: "pointer", padding: "3px 10px", border: "0.5px solid #4ade80", color: "#4ade80", whiteSpace: "nowrap", marginLeft: "12px" }}
+              >
+                RESOLVE
+              </div>
+            </div>
+          ))}
+        </div>
     </div>
   )
 }

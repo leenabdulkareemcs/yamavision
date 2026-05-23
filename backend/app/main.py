@@ -135,3 +135,12 @@ def update_device_label(device_id: int, label: str, db: Session = Depends(get_db
     device.label = label
     db.commit()
     return {"message": f"Label updated to {label}"}
+
+@app.put("/alerts/{alert_id}/resolve")
+def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
+    alert = db.query(Alert).filter(Alert.id == alert_id).first()
+    if not alert:
+        return {"error": "Alert not found"}
+    alert.is_resolved = True
+    db.commit()
+    return {"message": "Alert resolved"}
