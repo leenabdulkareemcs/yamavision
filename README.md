@@ -54,7 +54,7 @@ YamaVision is a full-stack network security monitoring system that:
 ## Screenshots
 
 > Dashboard showing live network devices, port scan results, and alerts.
-> Coming soon — run the app on your network to see live device discovery in action.
+> Coming soon, run the app on your network to see live device discovery in action.
 ---
 
 ## Getting Started
