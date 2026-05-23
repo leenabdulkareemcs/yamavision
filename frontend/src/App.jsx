@@ -57,14 +57,40 @@ export default function App() {
     fetchDevices()
     fetchAlerts()
   }, [])
+useEffect(() => {
+  let ws
+  let reconnectTimer
 
-  useEffect(() => {
-    if (!autoScan) return
-    const interval = setInterval(() => {
-      triggerScan()
-    }, scanInterval * 1000)
-    return () => clearInterval(interval)
-  }, [autoScan, scanInterval])
+  const connect = () => {
+    ws = new WebSocket("ws://localhost:8000/ws")
+
+    ws.onopen = () => {
+      console.log("WebSocket connected")
+    }
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      setDevices(data.devices.sort((a, b) => a.id - b.id))
+      setAlerts(data.alerts)
+    }
+
+    ws.onerror = (err) => {
+      console.error("WebSocket error:", err)
+    }
+
+    ws.onclose = () => {
+      console.log("WebSocket disconnected — reconnecting in 3s")
+      reconnectTimer = setTimeout(connect, 3000)
+    }
+  }
+
+  connect()
+
+  return () => {
+    clearTimeout(reconnectTimer)
+    if (ws) ws.close()
+  }
+}, [])
 
   return (
     <div style={{ minHeight: "100vh", background: "#090b10", color: "#c9c3d4", fontFamily: "monospace", padding: "2rem" }}>
