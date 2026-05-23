@@ -126,3 +126,12 @@ async def detect_device_os(device_id: int, db: Session = Depends(get_db)):
         "device_ip": device.ip_address,
         "os": os_name
     }
+    
+@app.put("/devices/{device_id}/label")
+def update_device_label(device_id: int, label: str, db: Session = Depends(get_db)):
+    device = db.query(Device).filter(Device.id == device_id).first()
+    if not device:
+        return {"error": "Device not found"}
+    device.label = label
+    db.commit()
+    return {"message": f"Label updated to {label}"}

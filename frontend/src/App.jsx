@@ -62,6 +62,13 @@ export default function App() {
     } catch (err) { console.error(err) }
   }
 
+  const updateLabel = async (deviceId, label) => {
+  try {
+    await axios.put(`${API}/devices/${deviceId}/label?label=${label}`)
+    await fetchDevices()
+  } catch (err) { console.error(err) }
+}
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
@@ -170,6 +177,14 @@ export default function App() {
                 <div style={{ fontSize: "14px", color: "#e8e4f0", letterSpacing: "1px" }}>{device.ip_address}</div>
                 <div style={{ fontSize: "11px", color: "#3d3556", marginTop: "3px" }}>{device.mac_address}</div>
                 <div style={{ fontSize: "11px", color: "#5a5272", marginTop: "2px" }}>{device.hostname || "unknown"}</div>
+                <div style={{ marginTop: "6px", display: "flex", gap: "6px", alignItems: "center" }}>
+                <input
+                  defaultValue={device.label || ""}
+                  placeholder="add label..."
+                  onBlur={(e) => updateLabel(device.id, e.target.value)}
+                  style={{ background: "transparent", border: "none", borderBottom: "0.5px solid #3d3556", color: "#9d6fff", fontSize: "11px", fontFamily: "monospace", letterSpacing: "1px", outline: "none", width: "120px", padding: "2px 0" }}
+                />
+              </div>    
               </div>
               <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "6px" }}>
                 <div style={{ fontSize: "10px", letterSpacing: "1px", padding: "3px 10px", border: `0.5px solid ${device.is_online ? "#4ade80" : "#1e1b2e"}`, color: device.is_online ? "#4ade80" : "#3d3556" }}>
