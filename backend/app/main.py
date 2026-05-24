@@ -144,3 +144,21 @@ def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
     alert.is_resolved = True
     db.commit()
     return {"message": "Alert resolved"}
+
+@app.post("/scan/passive")
+async def passive_scan_endpoint(duration: int = 30, db: Session = Depends(get_db)):
+    """Passively monitor network traffic to discover devices"""
+    from app.scanner import passive_scan
+    devices = passive_scan(duration)
+    new_devices = save_devices_to_db(devices, db)
+    all_devices = db.query(Device).all()
+    all_alerts = db.query(Alert).all()
+    await manager.broadcast({
+        "devices": [{"id": d.id, "ip_address": d.ip_address, "mac_address": d.mac_address, "hostname": d.hostname, "is_online": d.is_online, "is_trusted": d.is_trusted} for d in all_devices],
+        "alerts": [{"id": a.id, "alert_type": a.alert_type, "message": a.message, "created_at": str(a.created_at)} for a in all_alerts]
+    })
+    return {
+        "status": "passive scan complete",
+        "total_devices": len(devices),
+        "new_devices": len(new_devices)
+    }

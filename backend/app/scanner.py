@@ -22,30 +22,47 @@ def get_network_range():
     return network
 
 def scan_network():
-    """Scan the network and return list of devices"""
+    """Scan the network using both ARP and ping sweep"""
     network_range = get_network_range()
     print(f"🔍 Scanning network: {network_range}")
     
-    # ARP scan — sends ARP requests to every IP in the range
+    # ARP scan
     arp_request = scapy.ARP(pdst=network_range)
     broadcast = scapy.Ether(dst="ff:ff:ff:ff:ff:ff")
     arp_request_broadcast = broadcast / arp_request
-    
     answered_list = scapy.srp(
-        arp_request_broadcast, 
-        timeout=2, 
+        arp_request_broadcast,
+        timeout=2,
         verbose=False
     )[0]
     
     devices = []
+    found_ips = set()
+    
     for element in answered_list:
+        ip = element[1].psrc
+        mac = element[1].hwsrc
+        found_ips.add(ip)
         device = {
-            "ip_address": element[1].psrc,
-            "mac_address": element[1].hwsrc,
-            "hostname": get_hostname(element[1].psrc),
+            "ip_address": ip,
+            "mac_address": mac,
+            "hostname": get_hostname(ip),
             "last_seen": datetime.now()
         }
         devices.append(device)
+    
+    # Ping sweep for devices that didn't respond to ARP
+    ping_results = ping_sweep(network_range)
+    for ip in ping_results:
+        if ip not in found_ips:
+            found_ips.add(ip)
+            device = {
+                "ip_address": ip,
+                "mac_address": "unknown",
+                "hostname": get_hostname(ip),
+                "last_seen": datetime.now()
+            }
+            devices.append(device)
     
     print(f"✅ Found {len(devices)} devices")
     return devices
@@ -139,3 +156,65 @@ def detect_os(ip):
         return "Unknown"
     except:
         return "Unknown"
+    
+def ping_sweep(network_range):
+    """Ping sweep to find devices that don't respond to ARP"""
+    import subprocess
+    base_ip = network_range.replace(".0/24", "")
+    found = []
+    for i in range(1, 255):
+        ip = f"{base_ip}.{i}"
+        result = subprocess.run(
+            ["ping", "-n", "1", "-w", "100", ip],
+            capture_output=True
+        )
+        if result.returncode == 0:
+            found.append(ip)
+    return found
+
+def passive_scan(duration=30):
+    """Passively monitor network traffic to discover devices"""
+    print(f" Passive scanning for {duration} seconds...")
+    discovered = {}
+
+def passive_scan(duration=30):
+    """Passively monitor network traffic to discover devices"""
+    print(f" Passive scanning for {duration} seconds...")
+    discovered = {}
+
+    def process_packet(packet):
+        try:
+            if packet.haslayer(scapy.IP):
+                src_ip = packet[scapy.IP].src
+                if packet.haslayer(scapy.Ether):
+                    src_mac = packet[scapy.Ether].src
+                else:
+                    src_mac = "unknown"
+                if src_ip and not src_ip.startswith("127.") and not src_ip.startswith("224.") and not src_ip.startswith("255.") and not src_ip.startswith("169."):
+                    discovered[src_ip] = src_mac
+        except:
+            pass
+
+    local_ip = get_local_ip()
+    wifi_iface = None
+    for iface in scapy.get_if_list():
+        try:
+            if scapy.get_if_addr(iface) == local_ip:
+                wifi_iface = iface
+                break
+        except:
+            pass
+
+    scapy.sniff(iface=wifi_iface, prn=process_packet, timeout=duration, store=False)
+
+    devices = []
+    for ip, mac in discovered.items():
+        devices.append({
+            "ip_address": ip,
+            "mac_address": mac,
+            "hostname": get_hostname(ip),
+            "last_seen": datetime.now()
+        })
+
+    print(f"✅ Passive scan found {len(devices)} devices")
+    return devices

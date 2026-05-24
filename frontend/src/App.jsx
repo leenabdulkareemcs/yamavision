@@ -76,6 +76,17 @@ const resolveAlert = async (alertId) => {
   } catch (err) { console.error(err) }
 }
 
+const triggerPassiveScan = async (duration = 30) => {
+  setScanning(true)
+  try {
+    await axios.post(`${API}/scan/passive?duration=${duration}`)
+    await fetchDevices()
+    await fetchAlerts()
+    setLastScan(new Date().toLocaleTimeString())
+  } catch (err) { console.error(err) }
+  setScanning(false)
+}
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
@@ -137,6 +148,13 @@ const resolveAlert = async (alertId) => {
           >
             {scanning ? "SCANNING..." : "SCAN NETWORK"}
           </button>
+            <button
+              onClick={() => triggerPassiveScan(30)}
+              disabled={scanning}
+              style={{ background: "transparent", border: "0.5px solid #f87171", color: "#f87171", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s", marginLeft: "8px" }}
+            >
+              {scanning ? "SCANNING..." : "PASSIVE SCAN"}
+            </button>
           {lastScan && <div style={{ fontSize: "10px", color: "#3d3556", marginTop: "6px", letterSpacing: "1px" }}>LAST SCAN {lastScan}</div>}
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>
             <span style={{ fontSize: "10px", color: "#3d3556", letterSpacing: "1px" }}>AUTO SCAN</span>
