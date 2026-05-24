@@ -10,7 +10,8 @@ Inspired by **Zarqaa Al Yamamah** — the legendary Arabian woman who could see 
 
 YamaVision is a full-stack network security monitoring system that:
 
-- Scans your local network and discovers all connected devices
+- Actively scans your network using ARP + ping sweep
+- Passively monitors network traffic to discover hidden devices (found 20 in testing)
 - Detects open ports on each device
 - Identifies operating systems using Nmap fingerprinting
 - Alerts you instantly when an unknown device joins your network
@@ -39,7 +40,8 @@ YamaVision is a full-stack network security monitoring system that:
 
 | Feature | Description |
 |---|---|
-| Network Scanner | ARP-based discovery of all devices on the network |
+| Active Scanner | ARP + ping sweep discovers devices on the network |
+| Passive Scanner | Silently captures network traffic — found 20 devices in testing |
 | Port Scanner | TCP connect scan on 15 common ports per device |
 | OS Detection | Nmap TCP/IP fingerprinting to identify device OS |
 | Real-time Updates | WebSocket connection pushes live data to dashboard |
