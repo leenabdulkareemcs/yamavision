@@ -177,11 +177,6 @@ def passive_scan(duration=30):
     print(f" Passive scanning for {duration} seconds...")
     discovered = {}
 
-def passive_scan(duration=30):
-    """Passively monitor network traffic to discover devices"""
-    print(f" Passive scanning for {duration} seconds...")
-    discovered = {}
-
     def process_packet(packet):
         try:
             if packet.haslayer(scapy.IP):

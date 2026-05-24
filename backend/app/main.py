@@ -2,6 +2,8 @@ from fastapi import FastAPI, Depends, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from app.database import engine, Base, get_db
 from app.models import Device, Alert
 from app.scanner import scan_network, save_devices_to_db, scan_ports
@@ -113,10 +115,9 @@ async def websocket_endpoint(websocket: WebSocket):
             data = await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
-        
+
 @app.get("/devices/{device_id}/os")
 async def detect_device_os(device_id: int, db: Session = Depends(get_db)):
-    """Detect OS of a specific device"""
     device = db.query(Device).filter(Device.id == device_id).first()
     if not device:
         return {"error": "Device not found"}
@@ -126,7 +127,7 @@ async def detect_device_os(device_id: int, db: Session = Depends(get_db)):
         "device_ip": device.ip_address,
         "os": os_name
     }
-    
+
 @app.put("/devices/{device_id}/label")
 def update_device_label(device_id: int, label: str, db: Session = Depends(get_db)):
     device = db.query(Device).filter(Device.id == device_id).first()
@@ -146,10 +147,12 @@ def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
     return {"message": "Alert resolved"}
 
 @app.post("/scan/passive")
-async def passive_scan_endpoint(duration: int = 30, db: Session = Depends(get_db)):
+async def passive_scan_endpoint(duration: int = 15, db: Session = Depends(get_db)):
     """Passively monitor network traffic to discover devices"""
     from app.scanner import passive_scan
-    devices = passive_scan(duration)
+    loop = asyncio.get_event_loop()
+    with ThreadPoolExecutor() as pool:
+        devices = await loop.run_in_executor(pool, passive_scan, duration)
     new_devices = save_devices_to_db(devices, db)
     all_devices = db.query(Device).all()
     all_alerts = db.query(Alert).all()
