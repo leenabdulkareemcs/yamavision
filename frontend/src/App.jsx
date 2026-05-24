@@ -87,6 +87,23 @@ const triggerPassiveScan = async (duration = 30) => {
   setScanning(false)
 }
 
+const loadDemoData = () => {
+  setDevices([
+    { id: 1, ip_address: "192.168.1.1", mac_address: "a4:91:b1:2c:3d:4e", hostname: "router.local", label: "Router", is_online: true, is_trusted: true },
+    { id: 2, ip_address: "192.168.1.5", mac_address: "f8:4d:89:ab:cd:ef", hostname: "iPhone-Leen", label: "iPhone", is_online: true, is_trusted: true },
+    { id: 3, ip_address: "192.168.1.8", mac_address: "3c:22:fb:12:34:56", hostname: "MacBook-Pro", label: "MacBook", is_online: true, is_trusted: true },
+    { id: 4, ip_address: "192.168.1.12", mac_address: "00:11:22:33:44:55", hostname: "Samsung-TV", label: "Smart TV", is_online: true, is_trusted: true },
+    { id: 5, ip_address: "192.168.1.15", mac_address: "dc:a6:32:78:90:ab", hostname: "RaspberryPi", label: "Pi Server", is_online: true, is_trusted: false },
+    { id: 6, ip_address: "192.168.1.19", mac_address: "b8:27:eb:cd:ef:12", hostname: null, label: "", is_online: false, is_trusted: false },
+    { id: 7, ip_address: "192.168.1.22", mac_address: "44:65:0d:34:56:78", hostname: "Android-Phone", label: "Android", is_online: true, is_trusted: false },
+    { id: 8, ip_address: "192.168.1.31", mac_address: "18:fe:34:90:ab:cd", hostname: null, label: "", is_online: true, is_trusted: false },
+  ])
+  setAlerts([
+    { id: 1, alert_type: "NEW_DEVICE", message: "New device detected: 192.168.1.19 (b8:27:eb:cd:ef:12)", is_resolved: false, created_at: "2026-05-22 10:30:00" },
+    { id: 2, alert_type: "NEW_DEVICE", message: "New device detected: 192.168.1.31 (18:fe:34:90:ab:cd)", is_resolved: false, created_at: "2026-05-22 11:15:00" },
+  ])
+}
+
   useEffect(() => {
     fetchDevices()
     fetchAlerts()
@@ -154,6 +171,12 @@ const triggerPassiveScan = async (duration = 30) => {
               style={{ background: "transparent", border: "0.5px solid #f87171", color: "#f87171", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s", marginLeft: "8px" }}
             >
               {scanning ? "SCANNING..." : "PASSIVE SCAN"}
+            </button>
+            <button
+              onClick={loadDemoData}
+              style={{ background: "transparent", border: "0.5px solid #fbbf24", color: "#fbbf24", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s", marginLeft: "8px" }}
+            >
+              DEMO MODE
             </button>
           {lastScan && <div style={{ fontSize: "10px", color: "#3d3556", marginTop: "6px", letterSpacing: "1px" }}>LAST SCAN {lastScan}</div>}
           <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", justifyContent: "flex-end" }}>

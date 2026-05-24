@@ -191,9 +191,10 @@ def passive_scan(duration=60, callback=None):
                     not src_ip.startswith("224.") and 
                     not src_ip.startswith("255.") and 
                     not src_ip.startswith("169.") and
+                    src_ip.startswith("192.168.") and
                     src_ip not in discovered):
                     discovered[src_ip] = src_mac
-                    print(f"🔍 Found: {src_ip} ({src_mac})")
+                    print(f" Found: {src_ip} ({src_mac})")
         except:
             pass
 
