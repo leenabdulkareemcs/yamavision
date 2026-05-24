@@ -147,7 +147,7 @@ def resolve_alert(alert_id: int, db: Session = Depends(get_db)):
     return {"message": "Alert resolved"}
 
 @app.post("/scan/passive")
-async def passive_scan_endpoint(duration: int = 15, db: Session = Depends(get_db)):
+async def passive_scan_endpoint(duration: int = 60, db: Session = Depends(get_db)):
     """Passively monitor network traffic to discover devices"""
     from app.scanner import passive_scan
     loop = asyncio.get_event_loop()

@@ -24,7 +24,7 @@ def get_network_range():
 def scan_network():
     """Scan the network using both ARP and ping sweep"""
     network_range = get_network_range()
-    print(f"🔍 Scanning network: {network_range}")
+    print(f" Scanning network: {network_range}")
     
     # ARP scan
     arp_request = scapy.ARP(pdst=network_range)
@@ -84,7 +84,8 @@ def save_devices_to_db(devices, db):
     for device_data in devices:
         # Check if device already exists
         existing = db.query(Device).filter(
-            Device.ip_address == device_data["ip_address"]
+            (Device.ip_address == device_data["ip_address"]) |
+            (Device.mac_address == device_data["mac_address"])
         ).first()
         
         if existing:
@@ -172,7 +173,7 @@ def ping_sweep(network_range):
             found.append(ip)
     return found
 
-def passive_scan(duration=30):
+def passive_scan(duration=60, callback=None):
     """Passively monitor network traffic to discover devices"""
     print(f" Passive scanning for {duration} seconds...")
     discovered = {}
@@ -185,8 +186,14 @@ def passive_scan(duration=30):
                     src_mac = packet[scapy.Ether].src
                 else:
                     src_mac = "unknown"
-                if src_ip and not src_ip.startswith("127.") and not src_ip.startswith("224.") and not src_ip.startswith("255.") and not src_ip.startswith("169."):
+                if (src_ip and 
+                    not src_ip.startswith("127.") and 
+                    not src_ip.startswith("224.") and 
+                    not src_ip.startswith("255.") and 
+                    not src_ip.startswith("169.") and
+                    src_ip not in discovered):
                     discovered[src_ip] = src_mac
+                    print(f"🔍 Found: {src_ip} ({src_mac})")
         except:
             pass
 
@@ -200,6 +207,7 @@ def passive_scan(duration=30):
         except:
             pass
 
+    print(f" Listening on interface: {wifi_iface}")
     scapy.sniff(iface=wifi_iface, prn=process_packet, timeout=duration, store=False)
 
     devices = []
