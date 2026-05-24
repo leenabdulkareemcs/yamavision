@@ -149,7 +149,7 @@ const triggerPassiveScan = async (duration = 30) => {
             {scanning ? "SCANNING..." : "SCAN NETWORK"}
           </button>
             <button
-              onClick={() => triggerPassiveScan(30)}
+              onClick={() => triggerPassiveScan(60)}
               disabled={scanning}
               style={{ background: "transparent", border: "0.5px solid #f87171", color: "#f87171", padding: "10px 24px", fontSize: "12px", letterSpacing: "2px", cursor: "pointer", fontFamily: "monospace", transition: "all 0.2s", marginLeft: "8px" }}
             >
